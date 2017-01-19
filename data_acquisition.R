@@ -16,7 +16,7 @@ library(rplos)
 # set global variables
 
 #How many articles to sample?
-sample_size = 0.5 * 1e3
+sample_size = 99 * 1e3
   #15 * 10^3#type 'all' to sample all available articles
 
 #find out how many articles we should look for
@@ -107,8 +107,17 @@ ALM_extr <- function(doi){
       article$reference_count <- length(strsplit(tmp$data$reference[1], split = '; ')[[1]]), silent = T#temporary variable
     )
     
-    article$subject = tmp$data$subject_level_1[1]#for list of subjects see https://github.com/PLOS/plos-thesaurus/blob/master/plosthes.2016-3.full.xlsx
-    article$subject_count = length(strsplit(article$subject, split = '; ')[[1]])
+    if (is.null(tmp$data$subject_level_1[1])){
+      
+      article$subject = 'NA'#for list of subjects see https://github.com/PLOS/plos-thesaurus/blob/master/plosthes.2016-3.full.xlsx
+      article$subject_count = NaN
+            
+    } else {
+      
+      article$subject = tmp$data$subject_level_1[1]#for list of subjects see https://github.com/PLOS/plos-thesaurus/blob/master/plosthes.2016-3.full.xlsx
+      article$subject_count = length(strsplit(article$subject, split = '; ')[[1]])
+      
+    }
     
     #article$title = tmp$data$title[1]#title
     #title not acquired in order to save memory
