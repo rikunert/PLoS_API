@@ -128,7 +128,7 @@ ALM_extr <- function(doi){
     #some ALM are sometimes missing, therefore wrap in NulltoNaN function
     article$tweets = NulltoNaN(tmp$data$total[11])
     article$facebook = NulltoNaN(tmp$data$total[9])
-    article$scopus_cites= NulltoNaN(tmp$data$total[5])#citations (crossref, and scopus)
+    article$scopus_cites= NulltoNaN(tmp$data$total[5])#citations (scopus)
     article$reads = NulltoNaN(tmp$data$total[6]) + NulltoNaN(tmp$data$total[8])#reads/views (sum of counter and pmc)
     article$saves = NulltoNaN(tmp$data$total[10]) + NulltoNaN(tmp$data$total[1])#saves/downloads (mendeley, and citeulike)
     
