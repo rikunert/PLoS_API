@@ -107,7 +107,7 @@ ALM_extr <- function(doi){
       article$reference_count <- length(strsplit(tmp$data$reference[1], split = '; ')[[1]]), silent = T#temporary variable
     )
     
-    if (is.null(tmp$data$subject_level_1[1])){
+    if (is.null(tmp$data$subject_level_1[1])){#in case no subject info available
       
       article$subject = 'NA'#for list of subjects see https://github.com/PLOS/plos-thesaurus/blob/master/plosthes.2016-3.full.xlsx
       article$subject_count = NaN
