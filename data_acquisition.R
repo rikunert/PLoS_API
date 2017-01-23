@@ -32,7 +32,7 @@ article_count = dois$meta$numFound
 
 if (sample_size == 'all') sample_size = article_count
 
-step_size = 100 #articles processed in chunks, how big a chunk do you want?
+step_size = 500 #articles processed in chunks for memory reasons, how big a chunk do you want?
 
 ###################################################################################################
 # acquire data
