@@ -22,7 +22,7 @@ library(MASS)
 ###################################################################################################
 # load data
 
-load(url("https://github.com/rikunert/PLoS_API/raw/master/PLOSdata_2017-01-18_10k.RData"))
+load(url("https://github.com/rikunert/PLoS_API/raw/master/PLOSdata_2017-01-23_20k.RData"))
 #loads data frame called PLOS_data into workspace
 #columns in PLOS_data:
 # 1 review_time

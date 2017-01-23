@@ -19,7 +19,7 @@ library(stringr)
 # set global variables
 
 #How many articles to sample?
-sample_size = 20 * 1e3
+sample_size = 50 * 1e3
 #type 'all' to sample all available articles
 
 #find out how many articles we should look for
@@ -57,7 +57,7 @@ PLOS_data = data.frame(
   id = rep(NA, sample_size),
   subject = rep(NA, sample_size),
   journal = rep(NA, sample_size),
-  publication_date = rep(NA, sample_size)
+  publication_date = as.Date(rep(NA, sample_size))
 )
 
 tic_global = proc.time()[3]#start a timer (for debugging and efficiency purposes)
