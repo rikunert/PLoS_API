@@ -26,6 +26,9 @@ library(Hmisc)
 if(!require(MASS)){install.packages('MASS')}#for robust correlations
 library(MASS)
 
+if(!require(rplos)){install.packages('rplos')}# PLOS API package
+library(rplos)
+
 ###################################################################################################
 # load data
 
@@ -71,139 +74,158 @@ ui <- fluidPage(
   titlePanel("Analysis of article level metrics in Public Library of Science (PLoS)"),
   
   #INPUT 1#########################
-  fluidRow(column(4,
-                  
-                  #variable selection
-                  wellPanel(tags$h3('Variable selection'),
-                            selectInput(inputId = 'xSelect', label = 'Horizontal (x) axis',
-                                        c("Citations (Scopus)" = "scopus_cites",
-                                          "Views (PLOS & PMC)" = "reads",
-                                          "Downloads (Mendeley & Citeulike)" = "saves",
-                                          "Tweets" = "tweets",
-                                          "Facebook engagements" = "facebook",
-                                          "Number of authors" = "author_count",
-                                          "Number of pages" = "page_count",
-                                          "Number of References" = "reference_count",
-                                          "Number of subject categories" = "subject_count",
-                                          "Days between submission and publication" = "review_time",
-                                          "Publication date" = "publication_date"
-                                        ),
-                                        selected = "publication_date"),#for choosing variable on x-axis
-                            
-                            selectInput(inputId = 'ySelect', label = 'Vertical (y) axis',
-                                        c("Citations (Scopus)" = "scopus_cites",
-                                          "Views (PLOS & PMC)" = "reads",
-                                          "Downloads (Mendeley & Citeulike)" = "saves",
-                                          "Tweets" = "tweets",
-                                          "Facebook engagements" = "facebook",
-                                          "Number of authors" = "author_count",
-                                          "Number of pages" = "page_count",
-                                          "Number of References" = "reference_count",
-                                          "Number of subject categories" = "subject_count",
-                                          "Days between submission and publication" = "review_time",
-                                          "Publication date" = "publication_date"
-                                        ))#for choosing variable on y-axis
-                  ),
-                  
-                  #article selection
-                  wellPanel(tags$h3('Article selection'),
-                            dateRangeInput(inputId = 'dateSelect', label = 'Publication date range:',
-                                           start = min(PLOS_data[,"publication_date"]),
-                                           end = max(PLOS_data[,"publication_date"])),#for choosing date range from which to select articles
-                            
-                            selectInput(inputId = 'journalSelect', label = 'Journal:',#for choosing journal from which to select articles
-                                        c("all PLOS journals" = "all",
-                                          "PLoS ONE" = "PLOS ONE",
-                                          "PLoS Biology" = "PLOS Biology",
-                                          "PLoS Computational Biology" = "PLOS Computational Biology",
-                                          "PLoS Genetics" = "PLOS Genetics",
-                                          "PLoS Medicine" = "PLOS Medicine",
-                                          "PLoS Neglected Tropical Diseases",
-                                          "PLoS Pathogens" = "PLOS Pathogens")),
-                            
-                            selectInput(inputId = 'subjectSelect', label = 'Subject:',#for choosing subject from which to select articles
-                                        c("all subjects" = "all",
-                                          "Biology and life sciences" = "Biology and life sciences",
-                                          "Computer and information sciences" = "Computer and information sciences",
-                                          "Earth sciences" = "Earth sciences",
-                                          "Ecology and environmental sciences" = "Ecology and environmental sciences",
-                                          "Engineering and technology" = "Engineering and technology",
-                                          "Medicine and health sciences" = "Medicine and health sciences",
-                                          "People and places" = "People and places",
-                                          "Physical sciences" = "Physical sciences",
-                                          "Research and analysis methods" = "Research and analysis methods",
-                                          "Science policy" = "Science policy",
-                                          "Social sciences" = "Social sciences"))
-                            
-                  )),
-           
-           #OUTPUT########################################
-           column(8,
-                  plotOutput(outputId = 'scatterPlot',
-                             
-                             #add zoom functionality
-                             dblclick = "plot_dblclick",
-                             brush = brushOpts(
-                               id = "plot_brush",
-                               resetOnNew = TRUE
-                               
-                             )),
-                  
-                  #add text under plot
-                  'Data provided by ',a('PLOS', href="http://api.plos.org/api-display-policy/"),#this is a requirement by PLOS!
-                  br(),#a line break
-                  'ShinyApp made by Richard Kunert who generously shares the code on ',a('github.', href='https://github.com/rikunert/PLoS_API'),
-                  br(),#a line break
-                  'Licence: ',a('CC-BY-NC', href="https://creativecommons.org/licenses/by-nc/2.0/"),
-                  br(),#a line break
-                  'App version: 0.5, Data retrieved January 2017.',
-                  br(),
-                  br(),
-                  textOutput(outputId = 'text')),
-           
-           #INPUT 2#######################################
-           #visualisation options
-           fluidRow(column(8, offset = 4,
-                           
-                           wellPanel(tags$h3('Plotting options'),
-                             
-                             inputPanel(tags$h4('Fit'),
-                                        checkboxGroupInput(inputId = 'fitSelect', label = '',
-                                                           c("Correlation (Pearson: least squares regression)" = "pearson",
-                                                             "Rank-order correlation (Spearman: least squares regression of ranks)" = "spearman",
-                                                             "Robust regression (iterated reweighted least squares regression)" = "robust",
-                                                             "Local fit (LOESS)" = "loess"),
-                                                           selected = 'pearson')#for adding fit to data cloud
-                             ),
-                             
-                             inputPanel(tags$h4('Visuals'),
-                                        sliderInput(inputId = 'alphaSelect', label = 'Transparency of data points',
-                                                    value = 0.2, min = 0, max = 1),#for changing transparency of data points
-                                        sliderInput(inputId = 'pointSelect', label = 'Size of data points',
-                                                    value = 2, min = 0, max = 10),#for changing size of data points
-                                        colourInput(inputId = 'colourSelect', label = 'Colour of data points',
-                                                    '#666666', palette = 'limited')#for changing colour of data points
-                             ),
-                             
-                             inputPanel(tags$h4('Labels'),
-                                        textInput(inputId = 'xText', label = 'Label for horizontal (x) axis',
-                                                  value = '', placeholder = 'x-axis label'),
-                                        
-                                        textInput(inputId = 'yText', label = 'Label for vertical (y) axis',
-                                                  value = '', placeholder = 'y-axis label'),
-                                        
-                                        textInput(inputId = 'titleText', label = 'Title for plot',
-                                                  value = '', placeholder = 'plot title')
-                             ))
-           )
-           )
+  column(4,
+         
+         #variable selection
+         wellPanel(tags$h3('Variable selection'),
+                   selectInput(inputId = 'xSelect', label = 'Horizontal (x) axis',
+                               c("Citations (Scopus)" = "scopus_cites",
+                                 "Views (PLOS & PMC)" = "reads",
+                                 "Downloads (Mendeley & Citeulike)" = "saves",
+                                 "Tweets" = "tweets",
+                                 "Facebook engagements" = "facebook",
+                                 "Number of authors" = "author_count",
+                                 "Number of pages" = "page_count",
+                                 "Number of References" = "reference_count",
+                                 "Number of subject categories" = "subject_count",
+                                 "Days between submission and publication" = "review_time",
+                                 "Publication date" = "publication_date"
+                               ),
+                               selected = "publication_date"),#for choosing variable on x-axis
+                   
+                   selectInput(inputId = 'ySelect', label = 'Vertical (y) axis',
+                               c("Citations (Scopus)" = "scopus_cites",
+                                 "Views (PLOS & PMC)" = "reads",
+                                 "Downloads (Mendeley & Citeulike)" = "saves",
+                                 "Tweets" = "tweets",
+                                 "Facebook engagements" = "facebook",
+                                 "Number of authors" = "author_count",
+                                 "Number of pages" = "page_count",
+                                 "Number of References" = "reference_count",
+                                 "Number of subject categories" = "subject_count",
+                                 "Days between submission and publication" = "review_time",
+                                 "Publication date" = "publication_date"
+                               ),
+                               selected = 'review_time')#for choosing variable on y-axis
+         ),
+         
+         #article selection
+         wellPanel(tags$h3('Article selection'),
+                   
+                   dateRangeInput(inputId = 'dateSelect', label = 'Publication date range:',
+                                  start = min(PLOS_data[,"publication_date"]),
+                                  end = max(PLOS_data[,"publication_date"])),#for choosing date range from which to select articles
+                   
+                   selectInput(inputId = 'journalSelect', label = 'Journal:',#for choosing journal from which to select articles
+                               c("all PLOS journals" = "all",
+                                 "PLoS ONE" = "PLOS ONE",
+                                 "PLoS Biology" = "PLOS Biology",
+                                 "PLoS Computational Biology" = "PLOS Computational Biology",
+                                 "PLoS Genetics" = "PLOS Genetics",
+                                 "PLoS Medicine" = "PLOS Medicine",
+                                 "PLoS Neglected Tropical Diseases",
+                                 "PLoS Pathogens" = "PLOS Pathogens"),
+                               selected = "PLOS ONE"),
+                   
+                   selectInput(inputId = 'subjectSelect', label = 'Subject:',#for choosing subject from which to select articles
+                               c("all subjects" = "all",
+                                 "Biology and life sciences" = "Biology and life sciences",
+                                 "Computer and information sciences" = "Computer and information sciences",
+                                 "Earth sciences" = "Earth sciences",
+                                 "Ecology and environmental sciences" = "Ecology and environmental sciences",
+                                 "Engineering and technology" = "Engineering and technology",
+                                 "Medicine and health sciences" = "Medicine and health sciences",
+                                 "People and places" = "People and places",
+                                 "Physical sciences" = "Physical sciences",
+                                 "Research and analysis methods" = "Research and analysis methods",
+                                 "Science policy" = "Science policy",
+                                 "Social sciences" = "Social sciences"))
+                   
+         ),
+         
+         #article selected by double click in plot
+         wellPanel(tags$h3('Chosen article'),
+                   'Article chosen by clicking on data point (only enabled without margin plots):',
+                   br(),
+                   textOutput(outputId = 'articleSelect'),
+                   actionButton(inputId = "linkButton", "Link")
+         )
+  ),
+  
+  #OUTPUT########################################
+  column(8,
+         plotOutput(outputId = 'scatterPlot',
+                    
+                    #add interactive (zoom and article link) functionality
+                    click = "plot_click",
+                    dblclick = "plot_dblclick",
+                    brush = brushOpts(
+                      id = "plot_brush",
+                      resetOnNew = TRUE
+                      
+                    )),
+         
+         #add text under plot
+         br(),#line break
+         'The data are provided by ',a('PLOS', href="http://api.plos.org/api-display-policy/"),#this is a requirement by PLOS!
+         '. The shinyApp was made by Richard Kunert (see code on ',a('github', href='https://github.com/rikunert/PLoS_API'),
+         '). Licence: ',a('CC-BY-NC', href="https://creativecommons.org/licenses/by-nc/2.0/"),
+         '. Version: 0.9. Data retrieved January 2017.',
+         br(),
+         tags$hr(),#horizontal line
+         htmlOutput(outputId = 'text1'),
+         tags$hr(),#horizontal line
+         textOutput(outputId = 'text2'),
+         br(),
+         
+         #INPUT 2#######################################
+         #visualisation options
+                
+                wellPanel(tags$h3('Plotting options'),
+                          
+                          inputPanel(tags$h4('Summaries'),
+                                     checkboxGroupInput(inputId = 'fitSelect', label = 'Fits',
+                                                        c("Correlation (Pearson: least squares regression)" = "pearson",
+                                                          "Rank-order correlation (Spearman: least squares regression of ranks)" = "spearman",
+                                                          "Robust regression (iterated reweighted least squares regression)" = "robust",
+                                                          "Local fit (LOESS)" = "loess"),
+                                                        selected = 'pearson'),#for adding fit to data cloud
+                                     radioButtons(inputId = 'marginSelect', label = 'Margins',
+                                                  c('None (enables interactivity)' = 'none',
+                                                    'Marginal histogram (disables interactivity)' = 'histogram',
+                                                    'Marginal density (disables interactivity)' = 'density'),
+                                                  selected = 'none')
+                          ),
+                          
+                          inputPanel(tags$h4('Visuals'),
+                                     sliderInput(inputId = 'alphaSelect', label = 'Transparency of data points',
+                                                 value = 0.05, min = 0, max = 1),#for changing transparency of data points
+                                     sliderInput(inputId = 'pointSelect', label = 'Size of data points',
+                                                 value = 2, min = 0, max = 10),#for changing size of data points
+                                     colourInput(inputId = 'colourSelect', label = 'Colour of data points',
+                                                 showColour = 'background',
+                                                 '#666666', palette = 'limited')#for changing colour of data points
+                          ),
+                          
+                          inputPanel(tags$h4('Labels'),
+                                     textInput(inputId = 'xText', label = 'Label for horizontal (x) axis',
+                                               value = '', placeholder = 'x-axis label'),
+                                     
+                                     textInput(inputId = 'yText', label = 'Label for vertical (y) axis',
+                                               value = '', placeholder = 'y-axis label'),
+                                     
+                                     textInput(inputId = 'titleText', label = 'Title for plot',
+                                               value = '', placeholder = 'plot title')
+                          )
+         )
+         
   )
 )
 
 # Define server logic
 server <- function(input, output) {
   
-  #the interactive zooming xlim and ylim
+  #initialise variable for the interactive zooming xlim and ylim
   ranges <- reactiveValues(x = NULL, y = NULL)
   
   #select articles to plot
@@ -242,12 +264,15 @@ server <- function(input, output) {
     selection = selection_date & selection_journal & selection_subject & selection_x & selection_y
     
     #select variables to plot
+    doi = PLOS_data[selection, 'id']
     x = PLOS_data[selection, input$xSelect]
     y = PLOS_data[selection, input$ySelect]
     dat_corr = data.frame("x" = x,#x-axis
-                          "y" = y)#y-axis
+                          "y" = y,#y-axis
+                          'doi' = doi)#doi for interactivity
   })
-   
+  
+  #draw the plot
   output$scatterPlot = renderPlot({
     
     if (is.null(ranges$x)) ranges$x = c(min(dat_corr()$x[!is.na(dat_corr()$x)]), max(dat_corr()$x[!is.na(dat_corr()$x)]))
@@ -341,28 +366,50 @@ server <- function(input, output) {
       }
     }
     
-    #add marginal distributions
-    scatterPlot = ggMarginal(scatterPlot, type = 'density', margins = 'both', size = 5)#size refers to size of main plot (compared to marginals)
+    #add marginal distributions if input$marginSelect != 'none'
+    if (input$marginSelect == 'histogram') {#add marginal histogram
+      scatterPlot = ggMarginal(scatterPlot, 
+                               fill = input$colourSelect,
+                               type = input$marginSelect, margins = 'both',
+                               size = 3)#size refers to size of main plot (compared to marginals)
+    } else if (input$marginSelect == 'density'){#add density plot
+      scatterPlot = ggMarginal(scatterPlot, 
+                               colour = input$colourSelect, margins = 'both',
+                               xparams = list(size=1.5),#line thickness
+                               yparams = list(size=1.5),
+                               size = 3)#size refers to size of main plot (compared to marginals)
+    }
     
     #print the actual plot
     scatterPlot
     
   })
   
-  output$text = renderText({
-    
-    s1 = sprintf('')
-    
-    s2 = sprintf('Articles: %d (%1.1f per cent of total in data base of %d articles)',
-                 length(dat_corr()$x), round(length(dat_corr()$x) / length(PLOS_data$id) * 100), length(PLOS_data$id))
-    sprintf('%s \n %s', s1, s2)
+  #The text under the horizontal line, telling the user what s/he can or cannot do
+  output$text1 = renderUI({
+    if (input$marginSelect != 'none'){#if plot not interactive
+      HTML(sprintf('The plot is not interactive (marginal plots selected). Zooming and article selection disabled.'))
+    } else {
+      HTML(paste(
+        sprintf('The plot is interactive in two ways.'),
+        sprintf('1) Zooming. Hold and drag to create a rectangle. Double Click the rectangle to zoom in. Double click without rectangle to remove zoom. '),
+        sprintf('2) Link to article. Every data point you see is a link to the corresponding article. Single click article to choose it. It will appear in the left hand panel.'),
+        sep = '<br/>'
+      ))
+    }
+  })
+  
+  #The lowest text, telling the user how many articles are in the analysis
+  output$text2 = renderText({
+    sprintf('Articles: %d (%1.1f per cent of total in data base of %d articles)',
+            length(dat_corr()$x), round(length(dat_corr()$x) / length(PLOS_data$id) * 100), length(PLOS_data$id))
   })
   
   # When a double-click happens, check if there's a brush on the plot.
   # If so, zoom to the brush bounds; if not, reset the zoom.
   observeEvent(input$plot_dblclick, {
     brush <- input$plot_brush
-    if (!is.null(brush)) {#if there is a brush (highlighted area) on plot
+    if (!is.null(brush) && input$marginSelect == 'none') {#if there is a brush (highlighted area) on plot, if no marginal plots (which otherwise mess up this code)
       
       if (input$xSelect == 'publication_date') {
         ranges$x <- c(as.Date(brush$xmin, origin="1970-01-01"), as.Date(brush$xmax, origin="1970-01-01"))
@@ -372,7 +419,7 @@ server <- function(input, output) {
       
       ranges$y <- c(brush$ymin, brush$ymax)
       
-    } else {#if no highlighted area
+    } else {#if no highlighted area and/or marginal plots displayed
       
       ranges$x = NULL
       ranges$y = NULL
@@ -383,6 +430,59 @@ server <- function(input, output) {
   #reset axis limits to default when new variable for that axis chosen
   observeEvent(input$xSelect, ranges$x <- NULL)
   observeEvent(input$ySelect, ranges$y <- NULL)
+  
+  #reset axis limits to default when plot input changes
+  observeEvent({
+    input$marginSelect
+    input$journalSelect
+    input$dataSelect
+    input$subjectSelect
+  }, ignoreInit = T, {
+    ranges$x <- NULL
+    ranges$y <- NULL})
+  
+  #show article information
+  output$articleSelect = renderText({
+    
+    if(input$marginSelect == 'none'){#interactivity only enabled without marginal plots
+      
+      #the article to link to
+      selected_row = nearPoints(dat_corr(), input$plot_click,
+                                threshold = input$pointSelect,#size of reactive area scaled with plotted point size
+                                maxpoints = 1, #only return a single data point
+                                addDist = F)#do not return distance to actual point
+      
+      if (length(selected_row$doi == 1)){ 
+        
+        selected_article = searchplos(q = selected_row$doi,#selected_row$doi,#search for potentially all articles
+                                      fl='id, publication_date,
+                                      author, journal,title',
+                                      'doc_type:full',#only look for full articles
+                                      start = 0,
+                                      limit = 1)#how many articles to look for (50 is max for looking at the same time)
+        
+        sprintf('%s (%s). %s. %s. doi = %s',selected_article$data$author[1], substr(selected_article$data$publication_date[1], 1, 4),
+                selected_article$data$title[1], selected_article$data$journal[1], selected_article$data$id[1])
+        
+      }
+    }
+  })
+  
+  #open browser and go to article when person clicks on link button
+  observeEvent(input$linkButton, {
+    if(input$marginSelect == 'none'){
+      
+      #the article to link to
+      selected_row = nearPoints(dat_corr(), input$plot_click,
+                                threshold = input$pointSelect,#size of reactive area scaled with plotted point size
+                                maxpoints = 1, #only return a single data point
+                                addDist = F)#do not return distance to actual point
+      
+      #opening in browser if article doi present
+      if (length(selected_row$doi == 1)) {browseURL(sprintf('https://doi.org/%s',selected_row$doi))}
+    }
+  })
+  
 }
 
 # Run the application 

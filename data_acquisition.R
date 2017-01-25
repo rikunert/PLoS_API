@@ -9,7 +9,7 @@
 if(!require(alm)){install.packages('alm')}# article level metrics package
 library(alm)
 
-if(!require(rplos)){install.packages('rplos')}# article level metrics package
+if(!require(rplos)){install.packages('rplos')}# PLOS API package
 library(rplos)
 
 if(!require(stringr)){install.packages('stringr')}# for str_count funtion
