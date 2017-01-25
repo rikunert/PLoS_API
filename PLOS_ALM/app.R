@@ -145,7 +145,6 @@ ui <- fluidPage(
          
          #article selected by double click in plot
          wellPanel(tags$h3('Chosen article'),
-                   'Article chosen by clicking on data point (only enabled without margin plots):',
                    br(),
                    textOutput(outputId = 'articleSelect'),
                    actionButton(inputId = "linkButton", "Link")
@@ -464,8 +463,8 @@ server <- function(input, output) {
         sprintf('%s (%s). %s. %s. doi = %s',selected_article$data$author[1], substr(selected_article$data$publication_date[1], 1, 4),
                 selected_article$data$title[1], selected_article$data$journal[1], selected_article$data$id[1])
         
-      }
-    }
+      } else {sprintf('Click on data point to display corresponding article details here.')}
+    } else {sprintf('Choosing article only enabled when no margin plots selected.')}
   })
   
   #open browser and go to article when person clicks on link button
