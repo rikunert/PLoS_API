@@ -19,7 +19,7 @@ library(stringr)
 # set global variables
 
 #How many articles to sample?
-sample_size = 50 * 1e3
+sample_size = 100 * 1e3
 #type 'all' to sample all available articles
 
 #find out how many articles we should look for
