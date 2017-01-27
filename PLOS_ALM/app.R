@@ -32,8 +32,9 @@ library(rplos)
 ###################################################################################################
 # load data
 
-load(url("https://github.com/rikunert/PLoS_API/raw/master/PLOSdata_2017-01-23_100k.RData"))
+load(url("https://github.com/rikunert/PLoS_API/raw/master/PLOSdata_2017-01-27_195k.RData"))
 PLOS_data$page_count = as.integer(PLOS_data$page_count)#coerce into integer from factor (due to 'none' entries)
+PLOS_data$reference_count[PLOS_data$reference_count <= 1] = NaN#remove articles with zero or just one reference from analysis (data entry errors)
 
 #loads data frame called PLOS_data into workspace
 #columns in PLOS_data:
@@ -198,7 +199,7 @@ ui <- fluidPage(
                           
                           inputPanel(tags$h4('Visuals'),
                                      sliderInput(inputId = 'alphaSelect', label = 'Transparency of data points',
-                                                 value = 0.05, min = 0, max = 1),#for changing transparency of data points
+                                                 value = 0.2, min = 0, max = 1),#for changing transparency of data points
                                      sliderInput(inputId = 'pointSelect', label = 'Size of data points',
                                                  value = 2, min = 0, max = 10),#for changing size of data points
                                      colourInput(inputId = 'colourSelect', label = 'Colour of data points',
@@ -266,9 +267,9 @@ server <- function(input, output) {
     doi = PLOS_data[selection, 'id']
     x = PLOS_data[selection, input$xSelect]
     y = PLOS_data[selection, input$ySelect]
-    dat_corr = data.frame("x" = x,#x-axis
-                          "y" = y,#y-axis
-                          'doi' = doi)#doi for interactivity
+    dat_corr = data.frame("x" = x[!is.na(x) & !is.na(y)],#x-axis
+                          "y" = y[!is.na(x) & !is.na(y)],#y-axis
+                          'doi' = doi[!is.na(x) & !is.na(y)])#doi for interactivity
   })
   
   #draw the plot
@@ -287,14 +288,12 @@ server <- function(input, output) {
       labs(x = xLabel, y = yLabel, title = input$titleText) +
       xlim(ranges$x) + ylim(ranges$y)
     
+    
+    #Add data information
+    fitText = sprintf("Data provided by PLOS (%dk articles)", round(length(dat_corr()$x)/1000))#
+    
     #add fit if required
-    if (!length(input$fitSelect) == 0 && length(dat_corr()$x) > 5 && length(dat_corr()$y) > 5){
-      
-      #prepare fit text output if required
-      if (max(grepl('pearson', input$fitSelect, T, F)) |
-          max(grepl('spearman', input$fitSelect, T, F))){
-        fitText = "Fit: "#
-      }
+    if (!length(input$fitSelect) == 0 && length(dat_corr()$x) > 5 && length(dat_corr()$y) > 5){#if adding fit information is desirable
       
       #Pearson correlation
       if (max(grepl('pearson', input$fitSelect, T, F))){
@@ -367,11 +366,14 @@ server <- function(input, output) {
     
     #add marginal distributions if input$marginSelect != 'none'
     if (input$marginSelect == 'histogram') {#add marginal histogram
+      
       scatterPlot = ggMarginal(scatterPlot, 
                                fill = input$colourSelect,
                                type = input$marginSelect, margins = 'both',
                                size = 3)#size refers to size of main plot (compared to marginals)
+      
     } else if (input$marginSelect == 'density'){#add density plot
+      
       scatterPlot = ggMarginal(scatterPlot, 
                                colour = input$colourSelect, margins = 'both',
                                xparams = list(size=1.5),#line thickness
@@ -391,7 +393,7 @@ server <- function(input, output) {
     } else {
       HTML(paste(
         sprintf('The plot is interactive in two ways.'),
-        sprintf('1) Zooming. Hold and drag to create a rectangle. Double Click the rectangle to zoom in. Double click without rectangle to remove zoom. '),
+        sprintf('1) Zooming. Hold and drag to create a rectangle. Double click the rectangle to zoom in. Double click without rectangle to remove zoom. '),
         sprintf('2) Link to article. Every data point you see is a link to the corresponding article. Single click article to choose it. It will appear in the left hand panel.'),
         sep = '<br/>'
       ))
