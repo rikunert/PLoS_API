@@ -19,7 +19,7 @@ library(stringr)
 # set global variables
 
 #How many articles to sample?
-sample_size = 100 * 1e3
+sample_size = 'all'#100 * 1e3
 #type 'all' to sample all available articles
 
 #find out how many articles we should look for
@@ -60,6 +60,9 @@ PLOS_data = data.frame(
   publication_date = as.Date(rep(NA, sample_size))
 )
 
+#avoid exponential notation which creates problems for PLoS API above 1e+05
+options(scipen=999)
+
 tic_global = proc.time()[3]#start a timer (for debugging and efficiency purposes)
 
 for (i in seq(0,sample_size - step_size, by = step_size)) {#for each article which we gather (PLOS API counter appears to start at zero), these are all starting idx
@@ -92,40 +95,42 @@ for (i in seq(0,sample_size - step_size, by = step_size)) {#for each article whi
   
   max_idx = min(c(i + step_size, i + length(PLOS_data_i$info$data$id), sample_size))
   
-  PLOS_data$review_time[(i + 1) : max_idx] <- as.integer(difftime(as.Date(PLOS_data_i$info$data$publication_date),
-                                                                  as.Date(PLOS_data_i$info$data$received_date),
-                                                                  units = "days"))
-  
-  PLOS_data$author_count[(i + 1) : max_idx] <- str_count(PLOS_data_i$info$data$author, ';') + 1
-  
-  PLOS_data$page_count[(i + 1) : max_idx] <- PLOS_data_i$info$data$pagecount
-  
-  PLOS_data$reference_count[(i + 1) : max_idx] <- str_count(PLOS_data_i$info$data$reference, ';') + 1
-  
-  PLOS_data$subject_count[(i + 1) : max_idx] <- str_count(PLOS_data_i$info$data$subject_level_1, ';') + 1
-  
-  PLOS_data$tweets[(i + 1) : max_idx] <- as.numeric(lapply(PLOS_data_i$alm$data[PLOS_data_i$info$data$id], function(x) x[x['.id'] == 'twitter','total']))#tweets
-  
-  PLOS_data$facebook[(i + 1) : max_idx] <- as.numeric(lapply(PLOS_data_i$alm$data[PLOS_data_i$info$data$id], function(x) x[x['.id'] == 'facebook','total']))#facebook engagements
-  
-  PLOS_data$scopus_cites[(i + 1) : max_idx] <- as.numeric(lapply(PLOS_data_i$alm$data[PLOS_data_i$info$data$id], function(x) x[x['.id'] == 'scopus','total']))#scopus cites
-  
-  PLOS_data$reads[(i + 1) : max_idx] <- as.numeric(lapply(PLOS_data_i$alm$data[PLOS_data_i$info$data$id],
-                                                          function(x) x[x['.id'] == 'counter','total'] +#reads on PLOS
-                                                            x[x['.id'] == 'pmc', 'total']))#reads on pmc
-  
-  PLOS_data$saves[(i + 1) : max_idx] <- as.numeric(lapply(PLOS_data_i$alm$data[PLOS_data_i$info$data$id],
-                                                          function(x) x[x['.id'] == 'mendeley','total'] +#saves on mendeley
-                                                            x[x['.id'] == 'citeulike', 'total']))#saves on citeulike
-  
-  PLOS_data$id[(i + 1) : max_idx] <- PLOS_data_i$info$data$id
-  
-  PLOS_data$subject[(i + 1) : max_idx] <- PLOS_data_i$info$data$subject_level_1
-  
-  PLOS_data$journal[(i + 1) : max_idx] <- PLOS_data_i$info$data$journal
-  
-  PLOS_data$publication_date[(i + 1) : max_idx] <- as.Date(PLOS_data_i$info$data$publication_date)
-  
+  if (i < max_idx){
+    
+    PLOS_data$review_time[(i + 1) : max_idx] <- as.integer(difftime(as.Date(PLOS_data_i$info$data$publication_date),
+                                                                    as.Date(PLOS_data_i$info$data$received_date),
+                                                                    units = "days"))
+    
+    PLOS_data$author_count[(i + 1) : max_idx] <- str_count(PLOS_data_i$info$data$author, ';') + 1
+    
+    PLOS_data$page_count[(i + 1) : max_idx] <- PLOS_data_i$info$data$pagecount
+    
+    PLOS_data$reference_count[(i + 1) : max_idx] <- str_count(PLOS_data_i$info$data$reference, ';') + 1
+    
+    PLOS_data$subject_count[(i + 1) : max_idx] <- str_count(PLOS_data_i$info$data$subject_level_1, ';') + 1
+    
+    PLOS_data$tweets[(i + 1) : max_idx] <- as.numeric(lapply(PLOS_data_i$alm$data[PLOS_data_i$info$data$id], function(x) x[x['.id'] == 'twitter','total']))#tweets
+    
+    PLOS_data$facebook[(i + 1) : max_idx] <- as.numeric(lapply(PLOS_data_i$alm$data[PLOS_data_i$info$data$id], function(x) x[x['.id'] == 'facebook','total']))#facebook engagements
+    
+    PLOS_data$scopus_cites[(i + 1) : max_idx] <- as.numeric(lapply(PLOS_data_i$alm$data[PLOS_data_i$info$data$id], function(x) x[x['.id'] == 'scopus','total']))#scopus cites
+    
+    PLOS_data$reads[(i + 1) : max_idx] <- as.numeric(lapply(PLOS_data_i$alm$data[PLOS_data_i$info$data$id],
+                                                            function(x) x[x['.id'] == 'counter','total'] +#reads on PLOS
+                                                              x[x['.id'] == 'pmc', 'total']))#reads on pmc
+    
+    PLOS_data$saves[(i + 1) : max_idx] <- as.numeric(lapply(PLOS_data_i$alm$data[PLOS_data_i$info$data$id],
+                                                            function(x) x[x['.id'] == 'mendeley','total'] +#saves on mendeley
+                                                              x[x['.id'] == 'citeulike', 'total']))#saves on citeulike
+    
+    PLOS_data$id[(i + 1) : max_idx] <- PLOS_data_i$info$data$id
+    
+    PLOS_data$subject[(i + 1) : max_idx] <- PLOS_data_i$info$data$subject_level_1
+    
+    PLOS_data$journal[(i + 1) : max_idx] <- PLOS_data_i$info$data$journal
+    
+    PLOS_data$publication_date[(i + 1) : max_idx] <- as.Date(PLOS_data_i$info$data$publication_date)
+  }
   toc = proc.time()[3] - tic#check time spent since tic statement 
   print(sprintf('Actual duration of loop %d out of %d : %1.1f sec, or %1.2f sec per article',
                 round(((i+1)/step_size) + 1), ceiling(sample_size / step_size),
