@@ -107,7 +107,9 @@ ui <- fluidPage(
                                  "Days between submission and publication" = "review_time",
                                  "Publication date" = "publication_date"
                                ),
-                               selected = 'review_time')#for choosing variable on y-axis
+                               selected = 'review_time'),#for choosing variable on y-axis
+                   
+                   actionButton('variableSubmit', 'Submit variables')
          ),
          
          #article selection
@@ -126,7 +128,7 @@ ui <- fluidPage(
                                  "PLoS Medicine" = "PLOS Medicine",
                                  "PLoS Neglected Tropical Diseases",
                                  "PLoS Pathogens" = "PLOS Pathogens"),
-                               selected = "PLOS ONE"),
+                               selected = "PLOS Biology"),
                    
                    selectInput(inputId = 'subjectSelect', label = 'Subject:',#for choosing subject from which to select articles
                                c("all subjects" = "all",
@@ -140,7 +142,9 @@ ui <- fluidPage(
                                  "Physical sciences" = "Physical sciences",
                                  "Research and analysis methods" = "Research and analysis methods",
                                  "Science policy" = "Science policy",
-                                 "Social sciences" = "Social sciences"))
+                                 "Social sciences" = "Social sciences")),
+                   
+                   actionButton('selectSubmit', 'Submit articles')
                    
          ),
          
@@ -216,7 +220,10 @@ ui <- fluidPage(
                                      
                                      textInput(inputId = 'titleText', label = 'Title for plot',
                                                value = '', placeholder = 'plot title')
-                          )
+                          ),
+                          
+                          actionButton('visualSubmit', 'Submit changes')
+                          
          )
          
   )
@@ -274,6 +281,15 @@ server <- function(input, output) {
   
   #draw the plot
   output$scatterPlot = renderPlot({
+    
+    #Take dependency from submit buttons and zooming function
+    input$variableSubmit == 1 | 
+      input$visualSubmit == 1 | 
+      input$selectSubmit == 1 |
+      length(input$plot_dblclick) > 0
+    
+    #only execute the following code if one of submit buttons pressed or zooming function utilised (double click)
+    isolate({ 
     
     if (is.null(ranges$x)) ranges$x = c(min(dat_corr()$x[!is.na(dat_corr()$x)]), max(dat_corr()$x[!is.na(dat_corr()$x)]))
     if (is.null(ranges$y)) ranges$y = c(min(dat_corr()$y[!is.na(dat_corr()$y)]), max(dat_corr()$y[!is.na(dat_corr()$y)]))
@@ -383,11 +399,18 @@ server <- function(input, output) {
     
     #print the actual plot
     scatterPlot
-    
+    })
   })
   
   #The text under the horizontal line, telling the user what s/he can or cannot do
   output$text1 = renderUI({
+    
+    #Take dependency from submit button
+    input$visualSubmit
+    
+    #only execute the following code if submit button pressed
+    isolate({ 
+    
     if (input$marginSelect != 'none'){#if plot not interactive
       HTML(sprintf('The plot is not interactive (marginal plots selected). Zooming and article selection disabled.'))
     } else {
@@ -398,12 +421,21 @@ server <- function(input, output) {
         sep = '<br/>'
       ))
     }
+    })
   })
   
   #The lowest text, telling the user how many articles are in the analysis
   output$text2 = renderText({
+    
+    #Take dependency from submit buttons and zooming function
+    input$selectSubmit | input$variableSubmit | length(input$plot_dblclick) > 0
+    
+    #only execute the following code if submit button pressed
+    isolate( 
+    
     sprintf('Articles: %d (%1.1f per cent of total in data base of %d articles)',
             length(dat_corr()$x), round(length(dat_corr()$x) / length(PLOS_data$id) * 100), length(PLOS_data$id))
+    )
   })
   
   # When a double-click happens, check if there's a brush on the plot.
