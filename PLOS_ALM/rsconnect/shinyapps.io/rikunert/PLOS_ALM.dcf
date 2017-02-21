@@ -3,8 +3,8 @@ title: PLOS_ALM
 account: rikunert
 server: shinyapps.io
 appId: 153155
-bundleId: 690776
+bundleId: 719205
 url: https://rikunert.shinyapps.io/PLOS_ALM/
-when: 1485364998.29441
+when: 1487694240.01984
 asMultiple: FALSE
 asStatic: FALSE

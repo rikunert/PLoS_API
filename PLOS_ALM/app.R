@@ -10,7 +10,6 @@
 #load libraries
 library(shiny)
 
-
 if(!require(colourpicker)){install.packages('colourpicker')} #colour choice button
 library(colourpicker)
 
@@ -83,7 +82,7 @@ ui <- fluidPage(
                                c("Citations (Scopus)" = "scopus_cites",
                                  "Views (PLOS & PMC)" = "reads",
                                  "Downloads (Mendeley & Citeulike)" = "saves",
-                                 "Tweets" = "tweets",
+                                 "Tweets" = "tweets",#only collected since May 2012
                                  "Facebook engagements" = "facebook",
                                  "Number of authors" = "author_count",
                                  "Number of pages" = "page_count",
@@ -98,7 +97,7 @@ ui <- fluidPage(
                                c("Citations (Scopus)" = "scopus_cites",
                                  "Views (PLOS & PMC)" = "reads",
                                  "Downloads (Mendeley & Citeulike)" = "saves",
-                                 "Tweets" = "tweets",
+                                 "Tweets" = "tweets",#only collected since May 2012
                                  "Facebook engagements" = "facebook",
                                  "Number of authors" = "author_count",
                                  "Number of pages" = "page_count",
@@ -160,6 +159,8 @@ ui <- fluidPage(
   column(8,
          plotOutput(outputId = 'scatterPlot',
                     
+                    width = "100%",
+                    
                     #add interactive (zoom and article link) functionality
                     click = "plot_click",
                     dblclick = "plot_dblclick",
@@ -174,7 +175,7 @@ ui <- fluidPage(
          'The data are provided by ',a('PLOS', href="http://api.plos.org/api-display-policy/"),#this is a requirement by PLOS!
          '. The shinyApp was made by Richard Kunert (see code on ',a('github', href='https://github.com/rikunert/PLoS_API'),
          '). Licence: ',a('CC-BY-NC', href="https://creativecommons.org/licenses/by-nc/2.0/"),
-         '. Version: 0.9. Data retrieved January 2017.',
+         '. Version: 1.0. Data retrieved January 2017.',
          br(),
          tags$hr(),#horizontal line
          htmlOutput(outputId = 'text1'),
@@ -204,8 +205,13 @@ ui <- fluidPage(
                           inputPanel(tags$h4('Visuals'),
                                      sliderInput(inputId = 'alphaSelect', label = 'Transparency of data points',
                                                  value = 0.2, min = 0, max = 1),#for changing transparency of data points
+                                     
                                      sliderInput(inputId = 'pointSelect', label = 'Size of data points',
                                                  value = 2, min = 0, max = 10),#for changing size of data points
+                                     
+                                     sliderInput(inputId = 'lineSelect', label = 'Line thickness', step = 0.25,
+                                                 value = 1, min = 0, max = 5),#for changing line thickness
+                                     
                                      colourInput(inputId = 'colourSelect', label = 'Colour of data points',
                                                  showColour = 'background',
                                                  '#666666', palette = 'limited')#for changing colour of data points
@@ -220,6 +226,28 @@ ui <- fluidPage(
                                      
                                      textInput(inputId = 'titleText', label = 'Title for plot',
                                                value = '', placeholder = 'plot title')
+                          ),
+                          
+                          inputPanel(tags$h4('Size'),
+                                     sliderInput(inputId = 'titleSelect', label = 'Size of plot title',
+                                                 value = 24, min = 6, max = 40),#for changing title size,
+                                     
+                                     sliderInput(inputId = 'axisTitleSelect', label = 'Size of axis titles',
+                                                 value = 22, min = 6, max = 40),#for changing axis label size,
+                                     
+                                     sliderInput(inputId = 'axisLabelSelect', label = 'Size of axis labels',
+                                                 value = 20, min = 6, max = 40),#for changing axis label size,
+                                     
+                                     sliderInput(inputId = 'infoSelect', label = 'Size of info text in plot',
+                                                 value = 5, min = 1, max = 20),#for changing info text box text size,
+                                     
+                                     sliderInput(inputId = 'legendSelect', label = 'Size of legend text',
+                                                 value = 16, min = 6, max = 40),#for changing legend text size,
+                                     
+                                     radioButtons(inputId = 'plotSizeSelect', label = 'Dimensions of plot',
+                                               choices = c('Automatic' = 'auto',
+                                                           'Twitter (1024 x 512)' = 'twitter',
+                                                           'Small (512 x 256)' = 'small'))
                           ),
                           
                           actionButton('visualSubmit', 'Submit changes')
@@ -279,6 +307,27 @@ server <- function(input, output) {
                           'doi' = doi[!is.na(x) & !is.na(y)])#doi for interactivity
   })
   
+  #control height and width of plot (implemented in renderPlot call below)
+  heightSize = function(){
+    if (input$plotSizeSelect == 'auto') {
+      return('auto')
+    } else if (input$plotSizeSelect == 'twitter') {
+      return (512)
+    } else if (input$plotSizeSelect == 'small') {
+      return(512/2)
+    }
+  }
+  
+  widthSize = function(){
+    if (input$plotSizeSelect == 'auto') {
+      return('auto')
+    } else if (input$plotSizeSelect == 'twitter') {
+      return (1024)
+    } else if (input$plotSizeSelect == 'small') {
+      return(1024/2)
+    }
+  }
+  
   #draw the plot
   output$scatterPlot = renderPlot({
     
@@ -287,6 +336,10 @@ server <- function(input, output) {
       input$visualSubmit == 1 | 
       input$selectSubmit == 1 |
       length(input$plot_dblclick) > 0
+    
+    #initialise variables for plot size
+    # heightSelect = 'auto'
+    # widthSelect = 'auto'
     
     #only execute the following code if one of submit buttons pressed or zooming function utilised (double click)
     isolate({ 
@@ -301,7 +354,11 @@ server <- function(input, output) {
     #plot (including transparency options)
     scatterPlot = ggplot(dat_corr(), aes(x = x, y = y)) +
       geom_point(size = input$pointSelect, colour = input$colourSelect, alpha = input$alphaSelect) +#add points
-      labs(x = xLabel, y = yLabel, title = input$titleText) +
+      labs(x = xLabel, y = yLabel, title = input$titleText) +#add labels and title
+      theme(axis.text = element_text(size = input$axisLabelSelect)) + #axis label size
+      theme(axis.title = element_text(size = input$axisTitleSelect)) +#axis title size
+      theme(plot.title = element_text(size = input$titleSelect))+#plot title size
+      theme(legend.text = element_text(size = input$legendSelect))+#legend text size
       xlim(ranges$x) + ylim(ranges$y)
     
     
@@ -316,12 +373,15 @@ server <- function(input, output) {
         
         #prepare text output
         Pea_r = rcorr(dat_corr()$x, dat_corr()$y, type = "pearson")
+        
+        #add result to info text in plot
         fitText = sprintf("%s\nPearson r = %s", fitText, gsub("0\\.","\\.", sprintf('%1.2f', Pea_r$r[1,2])))
+        #fitText = sprintf('%s\nPearson r = %s, p = %1.4f', fitText, gsub("0\\.","\\.", sprintf('%1.2f', Pea_r$r[1,2])), Pea_r$P[1,2])#print more detailed result
         
         #add fit line
         scatterPlot = scatterPlot +
           scale_color_grey() + #colour scale for lines
-          stat_smooth(method = "lm", size = 1, se = FALSE,
+          stat_smooth(method = "lm", size = input$lineSelect, se = FALSE,
                       aes(colour = "Correlation (Pearson)"),
                       lty = 1)
       }
@@ -331,27 +391,10 @@ server <- function(input, output) {
         
         #prepare text output
         Spe_r = rcorr(dat_corr()$x, dat_corr()$y, type = "spearman")
+        
+        #add result to info text in plot
         fitText = sprintf("%s\nSpearman rho = %s", fitText, gsub("0\\.","\\.", sprintf('%1.2f', Spe_r$r[1,2])))
-        
-      }
-      
-      #add fit text output if required
-      if (max(grepl('pearson', input$fitSelect, T, F)) |
-          max(grepl('spearman', input$fitSelect, T, F))){
-        
-        XPos = YPos = Inf
-        if (input$xSelect == 'publication_date') XPos = max(dat_corr()$x)
-        if (input$ySelect == 'publication_date') YPos = max(dat_corr()$y)
-        
-        text_plotting = data.frame(x = XPos,
-                                   y = YPos,
-                                   t = fitText,
-                                   hjust = 1, vjust = 1)
-        
-        scatterPlot = scatterPlot + 
-          geom_text(data = text_plotting,
-                    aes(x=x,y=y,hjust=hjust, vjust = vjust, label=t),
-                    size = 5)
+        #fitText = sprintf('%s\nSpearman r = %s, p = %1.4f', fitText, gsub("0\\.","\\.", sprintf('%1.2f', Spe_r$r[1,2])), Spe_r$P[1,2])#print more detailed result
         
       }
       
@@ -361,7 +404,7 @@ server <- function(input, output) {
         #add fit line
         scatterPlot = scatterPlot +
           scale_color_grey() + #colour scale for lines
-          stat_smooth(method = "rlm", size = 1, se = FALSE,
+          stat_smooth(method = "rlm", size = input$lineSelect, se = FALSE,
                       aes(colour = "Robust regression"),
                       lty = 1)
         
@@ -373,12 +416,27 @@ server <- function(input, output) {
         #add fit line
         scatterPlot = scatterPlot +
           scale_color_grey() + #colour scale for lines
-          stat_smooth(method = "loess", size = 1, se = FALSE,
+          stat_smooth(method = "loess", size = input$lineSelect, se = FALSE,
                       aes(colour = "Local fit (LOESS)"),
                       lty = 1)
         
       }
     }
+    
+    #add fit text output
+    XPos = YPos = Inf
+    if (input$xSelect == 'publication_date') XPos = max(dat_corr()$x)
+    if (input$ySelect == 'publication_date') YPos = max(dat_corr()$y)
+    
+    text_plotting = data.frame(x = XPos,
+                               y = YPos,
+                               t = fitText,
+                               hjust = 1, vjust = 1)
+    
+    scatterPlot = scatterPlot + 
+      geom_text(data = text_plotting,
+                aes(x=x,y=y,hjust=hjust, vjust = vjust, label=t),
+                size = input$infoSelect)
     
     #add marginal distributions if input$marginSelect != 'none'
     if (input$marginSelect == 'histogram') {#add marginal histogram
@@ -392,15 +450,23 @@ server <- function(input, output) {
       
       scatterPlot = ggMarginal(scatterPlot, 
                                colour = input$colourSelect, margins = 'both',
-                               xparams = list(size=1.5),#line thickness
-                               yparams = list(size=1.5),
+                               xparams = list(size=input$lineSelect),#line thickness
+                               yparams = list(size=input$lineSelect),
                                size = 3)#size refers to size of main plot (compared to marginals)
     }
     
     #print the actual plot
     scatterPlot
-    })
-  })
+    }
+    )
+    
+  },
+  
+  #implement plot dimensions
+  width = widthSize,    
+  height = heightSize
+  
+  )
   
   #The text under the horizontal line, telling the user what s/he can or cannot do
   output$text1 = renderUI({
