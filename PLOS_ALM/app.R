@@ -1,11 +1,11 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
+# This is code for a Shiny web application. You can run the application by clicking
+# the 'Run App' button in RStudio above.
 #
 # Find out more about building applications with Shiny here:
 #
 #    http://shiny.rstudio.com/
 #
+# (c) Richard Kunert (RiKunert@gmail.com) February 2017
 
 #load libraries
 library(shiny)
