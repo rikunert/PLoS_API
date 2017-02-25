@@ -213,7 +213,7 @@ ui <- fluidPage(
                                                  value = 1, min = 0, max = 5),#for changing line thickness
                                      
                                      colourInput(inputId = 'colourSelect', label = 'Colour of data points',
-                                                 showColour = 'background',
+                                                 showColour = 'background',#'both',#
                                                  '#666666', palette = 'limited')#for changing colour of data points
                           ),
                           
@@ -336,10 +336,6 @@ server <- function(input, output) {
       input$visualSubmit == 1 | 
       input$selectSubmit == 1 |
       length(input$plot_dblclick) > 0
-    
-    #initialise variables for plot size
-    # heightSelect = 'auto'
-    # widthSelect = 'auto'
     
     #only execute the following code if one of submit buttons pressed or zooming function utilised (double click)
     isolate({ 
