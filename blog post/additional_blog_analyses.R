@@ -2,6 +2,9 @@
 if(!require(ggplot2)){install.packages('ggplot2')} #main plotting library
 library(ggplot2)
 
+if(!require(ggrepel)){install.packages('ggrepel')} #line labels
+library(ggrepel)
+
 if(!require(Hmisc)){install.packages('Hmisc')}#for standard correlations
 library(Hmisc)
 
@@ -139,3 +142,130 @@ scatterPlot = scatterPlot +
             aes(x=x,y=y,hjust=hjust, vjust = vjust, label=t),
             size = 5)
 scatterPlot
+
+###################################################################################################
+#analysis of review times for different PLoS journals
+years = seq(2006, 2016, 1)
+journals = c('PLoS ONE', 'PLoS Biology', 'PLoS Computational Biology','PLoS Genetics',
+             'PLoS Medicine', 'PLoS Neglected Tropical Diseases', 'PLoS Pathogens')
+
+#initialise variables
+review_time_mean = matrix(data = NA, nrow = length(years), ncol = length(journals))
+review_time_sd = matrix(data = NA, nrow = length(years), ncol = length(journals))
+review_time_25 = matrix(data = NA, nrow = length(years), ncol = length(journals))
+review_time_75 = matrix(data = NA, nrow = length(years), ncol = length(journals))
+article_count = matrix(data = NA, nrow = length(years), ncol = length(journals))
+
+#add column names
+colnames(review_time_mean) = journals
+colnames(review_time_sd) = journals
+colnames(article_count) = journals
+
+#add row names
+rownames(review_time_mean) = as.character(years)
+rownames(review_time_sd) = as.character(years)
+rownames(article_count) = as.character(years)
+
+for(y in seq(1,length(years),1)){ #for every year
+  
+  for (j in seq(1, length(journals), 1)){ #for every journal
+  
+    #restrict articles to journal and publication year
+  selection = toupper(PLOS_data[,'journal']) == toupper(journals[j]) &
+    PLOS_data[,"publication_date"] >= sprintf('%d-01-01',years[y]) &
+    PLOS_data[,"publication_date"] < sprintf('%d-01-01',years[y] + 1)
+  
+  if(sum(selection > 0)){#if this journal published anything in this year
+    review_time_mean[y, j]= mean(PLOS_data[selection &
+                                             !is.na(PLOS_data[,'review_time']) &
+                                             PLOS_data[,'review_time'] > 0 &#avoid negative review times
+                                             PLOS_data[,'review_time'] < 1000,#avoid positive outliers
+                                           'review_time'])#average review time
+    review_time_sd[y, j]= sd(PLOS_data[selection &
+                                         !is.na(PLOS_data[,'review_time']) &
+                                         PLOS_data[,'review_time'] > 0 &
+                                         PLOS_data[,'review_time'] < 1000,
+                                       'review_time'])#standard deviation review time  
+    
+    review_time_25[y, j]= quantile(PLOS_data[selection &
+                                         !is.na(PLOS_data[,'review_time']) &
+                                         PLOS_data[,'review_time'] > 0 &
+                                         PLOS_data[,'review_time'] < 1000,
+                                       'review_time'], .25)#25th percentiles 
+    
+    review_time_75[y, j]= quantile(PLOS_data[selection &
+                                         !is.na(PLOS_data[,'review_time']) &
+                                         PLOS_data[,'review_time'] > 0 &
+                                         PLOS_data[,'review_time'] < 1000,
+                                       'review_time'], .75)#75th percentile 
+    
+  } else {#if no publication in this journal in this year
+    review_time_mean[y, j]= NaN
+    review_time_sd[y, j]= NaN
+  }
+  
+  article_count[y, j] = sum(selection)#number of articles published
+  
+  }
+}
+
+#use shortened journal names for plotting
+journals = c('PLoS ONE', 'PLoS Bio', 'PLoS Comp Bio','PLoS Genetics',
+             'PLoS Medicine', 'PLoS NTD', 'PLoS Pathogens')
+
+#data frame for plotting
+dat_rev = data.frame(year = rep(years, length(journals)),
+                     review_time_mean = as.vector(review_time_mean),
+                     review_time_sd = as.vector(review_time_sd),
+                     review_time_25 = as.vector(review_time_25),
+                     review_time_75 = as.vector(review_time_75),
+                     journal = rep(journals, each = length(years)))
+
+dat_rev$journal = factor(dat_rev$journal, levels = journals)
+#dat_rev$year = as.factor(dat_rev$year)#x axis as made up of discrete variable
+
+#data set for highlighting PLoS ONE
+dat_rev_one = dat_rev[dat_rev$journal == 'PLoS ONE',]
+dat_rev_one$year = dat_rev_one$year - 0.15#imitate position_dodge
+
+pd = position_dodge(width = 0.4)
+
+revPlot = ggplot(dat_rev, aes(x = year, y = review_time_mean, color = journal, group = journal)) + 
+  geom_line(position = pd, size = 1, alpha = 0.5)+
+  geom_point(position = pd, size = 2, alpha = 0.5) +
+  geom_errorbar(aes(ymin=review_time_25,
+                    ymax=review_time_75),
+                position = pd,
+                size = 0.5, width=.1, alpha = 0.5) +
+  geom_line(data = dat_rev_one, size = 1.5) +#highlight PLoS ONE
+  geom_point(data = dat_rev_one, size = 4) + 
+  geom_errorbar(data = dat_rev_one,
+                aes(ymin=review_time_25,
+                    ymax=review_time_75),
+                size = 1, width=.15) +
+  scale_color_manual(values=c("#000080", "#e5e5e5",
+                              "#cccccc", "#b2b2b2", "#999999", '#7f7f7f', '#666666')) +
+  theme(legend.position = 'right') +
+  scale_x_continuous(breaks = seq(2006, 2016, 2)) +#leave one year blank on x-axis after every year labeled
+  labs(y = 'Days from submission to publication', x = 'Year',
+       title = 'PLoS ONE used to be faster than other PLoS journals')+
+  ylim(c(15, 320)) +#ensure y-axis starts just exactly at 0
+  annotate('text', x=2016.5, y=20, label="Data provided by PLOS \nMean +/- IQR",
+           size = 5, hjust = 1)
+  #geom_text(data = data.frame(), x=2016.5, y=35, label="Data provided by PLOS \nMean +/- IQR", hjust = 1, vjust = 1,
+  #          size = 5, colour = 'black')
+revPlot
+
+
+#Add data information
+XPos = YPos = -Inf
+text_plotting = data.frame(x = XPos,
+                           y = YPos,
+                           t = "Data provided my PLOS \nMean +/- IQR)",
+                           hjust = 1, vjust = 1)
+
+revPlot = revPlot + 
+  geom_text(data = text_plotting,
+            aes(x=x,y=y,hjust=hjust, vjust = vjust, label=t),
+            size = 5)
+revPlot

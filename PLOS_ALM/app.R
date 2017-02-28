@@ -125,8 +125,9 @@ ui <- fluidPage(
                                  "PLoS Computational Biology" = "PLOS Computational Biology",
                                  "PLoS Genetics" = "PLOS Genetics",
                                  "PLoS Medicine" = "PLOS Medicine",
-                                 "PLoS Neglected Tropical Diseases",
-                                 "PLoS Pathogens" = "PLOS Pathogens"),
+                                 "PLoS Neglected Tropical Diseases" = 'PLoS Neglected Tropical Diseases',
+                                 "PLoS Pathogens" = "PLOS Pathogens",
+                                 "all PLoS jounals except PLoS ONE" = "not PLoS ONE"),
                                selected = "PLOS Biology"),
                    
                    selectInput(inputId = 'subjectSelect', label = 'Subject:',#for choosing subject from which to select articles
@@ -175,7 +176,7 @@ ui <- fluidPage(
          'The data are provided by ',a('PLOS', href="http://api.plos.org/api-display-policy/"),#this is a requirement by PLOS!
          '. The shinyApp was made by Richard Kunert (see code on ',a('github', href='https://github.com/rikunert/PLoS_API'),
          '). Licence: ',a('CC-BY-NC', href="https://creativecommons.org/licenses/by-nc/2.0/"),
-         '. Version: 1.0. Data retrieved January 2017.',
+         '. Version: 1.01. Data retrieved January 2017.',
          br(),
          tags$hr(),#horizontal line
          htmlOutput(outputId = 'text1'),
@@ -185,73 +186,73 @@ ui <- fluidPage(
          
          #INPUT 2#######################################
          #visualisation options
-                
-                wellPanel(tags$h3('Plotting options'),
-                          
-                          inputPanel(tags$h4('Summaries'),
-                                     checkboxGroupInput(inputId = 'fitSelect', label = 'Fits',
-                                                        c("Correlation (Pearson: least squares regression)" = "pearson",
-                                                          "Rank-order correlation (Spearman: least squares regression of ranks)" = "spearman",
-                                                          "Robust regression (iterated reweighted least squares regression)" = "robust",
-                                                          "Local fit (LOESS)" = "loess"),
-                                                        selected = 'pearson'),#for adding fit to data cloud
-                                     radioButtons(inputId = 'marginSelect', label = 'Margins',
-                                                  c('None (enables interactivity)' = 'none',
-                                                    'Marginal histogram (disables interactivity)' = 'histogram',
-                                                    'Marginal density (disables interactivity)' = 'density'),
-                                                  selected = 'none')
-                          ),
-                          
-                          inputPanel(tags$h4('Visuals'),
-                                     sliderInput(inputId = 'alphaSelect', label = 'Transparency of data points',
-                                                 value = 0.2, min = 0, max = 1),#for changing transparency of data points
-                                     
-                                     sliderInput(inputId = 'pointSelect', label = 'Size of data points',
-                                                 value = 2, min = 0, max = 10),#for changing size of data points
-                                     
-                                     sliderInput(inputId = 'lineSelect', label = 'Line thickness', step = 0.25,
-                                                 value = 1, min = 0, max = 5),#for changing line thickness
-                                     
-                                     colourInput(inputId = 'colourSelect', label = 'Colour of data points',
-                                                 showColour = 'background',#'both',#
-                                                 '#666666', palette = 'limited')#for changing colour of data points
-                          ),
-                          
-                          inputPanel(tags$h4('Labels'),
-                                     textInput(inputId = 'xText', label = 'Label for horizontal (x) axis',
-                                               value = '', placeholder = 'x-axis label'),
-                                     
-                                     textInput(inputId = 'yText', label = 'Label for vertical (y) axis',
-                                               value = '', placeholder = 'y-axis label'),
-                                     
-                                     textInput(inputId = 'titleText', label = 'Title for plot',
-                                               value = '', placeholder = 'plot title')
-                          ),
-                          
-                          inputPanel(tags$h4('Size'),
-                                     sliderInput(inputId = 'titleSelect', label = 'Size of plot title',
-                                                 value = 24, min = 6, max = 40),#for changing title size,
-                                     
-                                     sliderInput(inputId = 'axisTitleSelect', label = 'Size of axis titles',
-                                                 value = 22, min = 6, max = 40),#for changing axis label size,
-                                     
-                                     sliderInput(inputId = 'axisLabelSelect', label = 'Size of axis labels',
-                                                 value = 20, min = 6, max = 40),#for changing axis label size,
-                                     
-                                     sliderInput(inputId = 'infoSelect', label = 'Size of info text in plot',
-                                                 value = 5, min = 1, max = 20),#for changing info text box text size,
-                                     
-                                     sliderInput(inputId = 'legendSelect', label = 'Size of legend text',
-                                                 value = 16, min = 6, max = 40),#for changing legend text size,
-                                     
-                                     radioButtons(inputId = 'plotSizeSelect', label = 'Dimensions of plot',
-                                               choices = c('Automatic' = 'auto',
-                                                           'Twitter (1024 x 512)' = 'twitter',
-                                                           'Small (512 x 256)' = 'small'))
-                          ),
-                          
-                          actionButton('visualSubmit', 'Submit changes')
-                          
+         
+         wellPanel(tags$h3('Plotting options'),
+                   
+                   inputPanel(tags$h4('Summaries'),
+                              checkboxGroupInput(inputId = 'fitSelect', label = 'Fits',
+                                                 c("Correlation (Pearson: least squares regression)" = "pearson",
+                                                   "Rank-order correlation (Spearman: least squares regression of ranks)" = "spearman",
+                                                   "Robust regression (iterated reweighted least squares regression)" = "robust",
+                                                   "Local fit (LOESS)" = "loess"),
+                                                 selected = 'pearson'),#for adding fit to data cloud
+                              radioButtons(inputId = 'marginSelect', label = 'Margins',
+                                           c('None (enables interactivity)' = 'none',
+                                             'Marginal histogram (disables interactivity)' = 'histogram',
+                                             'Marginal density (disables interactivity)' = 'density'),
+                                           selected = 'none')
+                   ),
+                   
+                   inputPanel(tags$h4('Visuals'),
+                              sliderInput(inputId = 'alphaSelect', label = 'Transparency of data points',
+                                          value = 0.2, min = 0, max = 1),#for changing transparency of data points
+                              
+                              sliderInput(inputId = 'pointSelect', label = 'Size of data points',
+                                          value = 2, min = 0, max = 10),#for changing size of data points
+                              
+                              sliderInput(inputId = 'lineSelect', label = 'Line thickness', step = 0.25,
+                                          value = 1, min = 0, max = 5),#for changing line thickness
+                              
+                              colourInput(inputId = 'colourSelect', label = 'Colour of data points',
+                                          showColour = 'background',#'both',#
+                                          '#666666', palette = 'limited')#for changing colour of data points
+                   ),
+                   
+                   inputPanel(tags$h4('Labels'),
+                              textInput(inputId = 'xText', label = 'Label for horizontal (x) axis',
+                                        value = '', placeholder = 'x-axis label'),
+                              
+                              textInput(inputId = 'yText', label = 'Label for vertical (y) axis',
+                                        value = '', placeholder = 'y-axis label'),
+                              
+                              textInput(inputId = 'titleText', label = 'Title for plot',
+                                        value = '', placeholder = 'plot title')
+                   ),
+                   
+                   inputPanel(tags$h4('Size'),
+                              sliderInput(inputId = 'titleSelect', label = 'Size of plot title',
+                                          value = 24, min = 6, max = 40),#for changing title size,
+                              
+                              sliderInput(inputId = 'axisTitleSelect', label = 'Size of axis titles',
+                                          value = 22, min = 6, max = 40),#for changing axis label size,
+                              
+                              sliderInput(inputId = 'axisLabelSelect', label = 'Size of axis labels',
+                                          value = 20, min = 6, max = 40),#for changing axis label size,
+                              
+                              sliderInput(inputId = 'infoSelect', label = 'Size of info text in plot',
+                                          value = 5, min = 1, max = 20),#for changing info text box text size,
+                              
+                              sliderInput(inputId = 'legendSelect', label = 'Size of legend text',
+                                          value = 16, min = 6, max = 40),#for changing legend text size,
+                              
+                              radioButtons(inputId = 'plotSizeSelect', label = 'Dimensions of plot',
+                                           choices = c('Automatic' = 'auto',
+                                                       'Twitter (1024 x 512)' = 'twitter',
+                                                       'Small (512 x 256)' = 'small'))
+                   ),
+                   
+                   actionButton('visualSubmit', 'Submit changes')
+                   
          )
          
   )
@@ -271,8 +272,10 @@ server <- function(input, output) {
       PLOS_data[,"publication_date"] <= input$dateSelect[2]
     
     #journal restriction
-    if (input$journalSelect == 'all') {
+    if (input$journalSelect == 'all') {#if all journals
       selection_journal = rep(T, length(PLOS_data$journal)) 
+    } else if(input$journalSelect == 'not PLoS ONE'){#if not PLoS ONE, otherwise all journals
+      selection_journal = toupper(PLOS_data[,'journal']) != toupper('PLOS ONE')#convert to upper case to avoid mismatch due to case
     } else {#if a specific journal is chosen
       selection_journal = toupper(PLOS_data[,'journal']) == toupper(input$journalSelect)#convert to upper case to avoid mismatch due to case
     }
@@ -296,6 +299,7 @@ server <- function(input, output) {
       selection_y = rep(T, length(PLOS_data$id)) 
     }
     
+    #combine restrictions for final selection of articles
     selection = selection_date & selection_journal & selection_subject & selection_x & selection_y
     
     #select variables to plot
@@ -339,120 +343,121 @@ server <- function(input, output) {
     
     #only execute the following code if one of submit buttons pressed or zooming function utilised (double click)
     isolate({ 
-    
-    if (is.null(ranges$x)) ranges$x = c(min(dat_corr()$x[!is.na(dat_corr()$x)]), max(dat_corr()$x[!is.na(dat_corr()$x)]))
-    if (is.null(ranges$y)) ranges$y = c(min(dat_corr()$y[!is.na(dat_corr()$y)]), max(dat_corr()$y[!is.na(dat_corr()$y)]))
-    
-    #put default column name on axes in case user did not specify axis labels
-    if (input$xText == '') {xLabel = input$xSelect} else {xLabel = input$xText}
-    if (input$yText == '') {yLabel = input$ySelect} else {yLabel = input$yText}
-    
-    #plot (including transparency options)
-    scatterPlot = ggplot(dat_corr(), aes(x = x, y = y)) +
-      geom_point(size = input$pointSelect, colour = input$colourSelect, alpha = input$alphaSelect) +#add points
-      labs(x = xLabel, y = yLabel, title = input$titleText) +#add labels and title
-      theme(axis.text = element_text(size = input$axisLabelSelect)) + #axis label size
-      theme(axis.title = element_text(size = input$axisTitleSelect)) +#axis title size
-      theme(plot.title = element_text(size = input$titleSelect))+#plot title size
-      theme(legend.text = element_text(size = input$legendSelect))+#legend text size
-      xlim(ranges$x) + ylim(ranges$y)
-    
-    
-    #Add data information
-    fitText = sprintf("Data provided by PLOS (%dk articles)", round(length(dat_corr()$x)/1000))#
-    
-    #add fit if required
-    if (!length(input$fitSelect) == 0 && length(dat_corr()$x) > 5 && length(dat_corr()$y) > 5){#if adding fit information is desirable
       
-      #Pearson correlation
-      if (max(grepl('pearson', input$fitSelect, T, F))){
+      #if no restriction on x- and y-axis, just use the minimum and maximum in data
+      if (is.null(ranges$x)) ranges$x = c(min(dat_corr()$x[!is.na(dat_corr()$x)]), max(dat_corr()$x[!is.na(dat_corr()$x)]))
+      if (is.null(ranges$y)) ranges$y = c(min(dat_corr()$y[!is.na(dat_corr()$y)]), max(dat_corr()$y[!is.na(dat_corr()$y)]))
+      
+      #put default column name on axes in case user did not specify axis labels
+      if (input$xText == '') {xLabel = input$xSelect} else {xLabel = input$xText}
+      if (input$yText == '') {yLabel = input$ySelect} else {yLabel = input$yText}
+      
+      #plot (including transparency options)
+      scatterPlot = ggplot(dat_corr(), aes(x = x, y = y)) +
+        geom_point(size = input$pointSelect, colour = input$colourSelect, alpha = input$alphaSelect) +#add points
+        labs(x = xLabel, y = yLabel, title = input$titleText) +#add labels and title
+        theme(axis.text = element_text(size = input$axisLabelSelect)) + #axis label size
+        theme(axis.title = element_text(size = input$axisTitleSelect)) +#axis title size
+        theme(plot.title = element_text(size = input$titleSelect))+#plot title size
+        theme(legend.text = element_text(size = input$legendSelect))+#legend text size
+        xlim(ranges$x) + ylim(ranges$y)#limits of axes
+      
+      
+      #Add data information
+      fitText = sprintf("Data provided by PLOS (%dk articles)", round(length(dat_corr()$x)/1000))#
+      
+      #add fit if required
+      if (!length(input$fitSelect) == 0 && length(dat_corr()$x) > 5 && length(dat_corr()$y) > 5){#if adding fit information is desirable
         
-        #prepare text output
-        Pea_r = rcorr(dat_corr()$x, dat_corr()$y, type = "pearson")
+        #Pearson correlation
+        if (max(grepl('pearson', input$fitSelect, T, F))){
+          
+          #prepare text output
+          Pea_r = rcorr(dat_corr()$x, dat_corr()$y, type = "pearson")
+          
+          #add result to info text in plot
+          fitText = sprintf("%s\nPearson r = %s", fitText, gsub("0\\.","\\.", sprintf('%1.2f', Pea_r$r[1,2])))
+          #fitText = sprintf('%s\nPearson r = %s, p = %1.4f', fitText, gsub("0\\.","\\.", sprintf('%1.2f', Pea_r$r[1,2])), Pea_r$P[1,2])#print more detailed result
+          
+          #add fit line
+          scatterPlot = scatterPlot +
+            scale_color_grey() + #colour scale for lines
+            stat_smooth(method = "lm", size = input$lineSelect, se = FALSE,
+                        aes(colour = "Correlation (Pearson)"),
+                        lty = 1)
+        }
         
-        #add result to info text in plot
-        fitText = sprintf("%s\nPearson r = %s", fitText, gsub("0\\.","\\.", sprintf('%1.2f', Pea_r$r[1,2])))
-        #fitText = sprintf('%s\nPearson r = %s, p = %1.4f', fitText, gsub("0\\.","\\.", sprintf('%1.2f', Pea_r$r[1,2])), Pea_r$P[1,2])#print more detailed result
+        #Spearman correlation
+        if (max(grepl('spearman', input$fitSelect, T, F))){
+          
+          #prepare text output
+          Spe_r = rcorr(dat_corr()$x, dat_corr()$y, type = "spearman")
+          
+          #add result to info text in plot
+          fitText = sprintf("%s\nSpearman rho = %s", fitText, gsub("0\\.","\\.", sprintf('%1.2f', Spe_r$r[1,2])))
+          #fitText = sprintf('%s\nSpearman r = %s, p = %1.4f', fitText, gsub("0\\.","\\.", sprintf('%1.2f', Spe_r$r[1,2])), Spe_r$P[1,2])#print more detailed result
+          
+        }
         
-        #add fit line
-        scatterPlot = scatterPlot +
-          scale_color_grey() + #colour scale for lines
-          stat_smooth(method = "lm", size = input$lineSelect, se = FALSE,
-                      aes(colour = "Correlation (Pearson)"),
-                      lty = 1)
+        #Robust correlation
+        if (max(grepl('robust', input$fitSelect, T, F))){
+          
+          #add fit line
+          scatterPlot = scatterPlot +
+            scale_color_grey() + #colour scale for lines
+            stat_smooth(method = "rlm", size = input$lineSelect, se = FALSE,
+                        aes(colour = "Robust regression"),
+                        lty = 1)
+          
+        }
+        
+        #LOESS fit
+        if (max(grepl('loess', input$fitSelect, T, F))){
+          
+          #add fit line
+          scatterPlot = scatterPlot +
+            scale_color_grey() + #colour scale for lines
+            stat_smooth(method = "loess", size = input$lineSelect, se = FALSE,
+                        aes(colour = "Local fit (LOESS)"),
+                        lty = 1)
+          
+        }
       }
       
-      #Spearman correlation
-      if (max(grepl('spearman', input$fitSelect, T, F))){
+      #add fit text output
+      XPos = YPos = Inf
+      if (input$xSelect == 'publication_date') XPos = max(dat_corr()$x)
+      if (input$ySelect == 'publication_date') YPos = max(dat_corr()$y)
+      
+      text_plotting = data.frame(x = XPos,
+                                 y = YPos,
+                                 t = fitText,
+                                 hjust = 1, vjust = 1)
+      
+      scatterPlot = scatterPlot + 
+        geom_text(data = text_plotting,
+                  aes(x=x,y=y,hjust=hjust, vjust = vjust, label=t),
+                  size = input$infoSelect)
+      
+      #add marginal distributions if input$marginSelect != 'none'
+      if (input$marginSelect == 'histogram') {#add marginal histogram
         
-        #prepare text output
-        Spe_r = rcorr(dat_corr()$x, dat_corr()$y, type = "spearman")
+        scatterPlot = ggMarginal(scatterPlot, 
+                                 fill = input$colourSelect,
+                                 type = input$marginSelect, margins = 'both',
+                                 size = 3)#size refers to size of main plot (compared to marginals)
         
-        #add result to info text in plot
-        fitText = sprintf("%s\nSpearman rho = %s", fitText, gsub("0\\.","\\.", sprintf('%1.2f', Spe_r$r[1,2])))
-        #fitText = sprintf('%s\nSpearman r = %s, p = %1.4f', fitText, gsub("0\\.","\\.", sprintf('%1.2f', Spe_r$r[1,2])), Spe_r$P[1,2])#print more detailed result
+      } else if (input$marginSelect == 'density'){#add density plot
         
+        scatterPlot = ggMarginal(scatterPlot, 
+                                 colour = input$colourSelect, margins = 'both',
+                                 xparams = list(size=input$lineSelect),#line thickness
+                                 yparams = list(size=input$lineSelect),
+                                 size = 3)#size refers to size of main plot (compared to marginals)
       }
       
-      #Robust correlation
-      if (max(grepl('robust', input$fitSelect, T, F))){
-        
-        #add fit line
-        scatterPlot = scatterPlot +
-          scale_color_grey() + #colour scale for lines
-          stat_smooth(method = "rlm", size = input$lineSelect, se = FALSE,
-                      aes(colour = "Robust regression"),
-                      lty = 1)
-        
-      }
-      
-      #LOESS fit
-      if (max(grepl('loess', input$fitSelect, T, F))){
-        
-        #add fit line
-        scatterPlot = scatterPlot +
-          scale_color_grey() + #colour scale for lines
-          stat_smooth(method = "loess", size = input$lineSelect, se = FALSE,
-                      aes(colour = "Local fit (LOESS)"),
-                      lty = 1)
-        
-      }
-    }
-    
-    #add fit text output
-    XPos = YPos = Inf
-    if (input$xSelect == 'publication_date') XPos = max(dat_corr()$x)
-    if (input$ySelect == 'publication_date') YPos = max(dat_corr()$y)
-    
-    text_plotting = data.frame(x = XPos,
-                               y = YPos,
-                               t = fitText,
-                               hjust = 1, vjust = 1)
-    
-    scatterPlot = scatterPlot + 
-      geom_text(data = text_plotting,
-                aes(x=x,y=y,hjust=hjust, vjust = vjust, label=t),
-                size = input$infoSelect)
-    
-    #add marginal distributions if input$marginSelect != 'none'
-    if (input$marginSelect == 'histogram') {#add marginal histogram
-      
-      scatterPlot = ggMarginal(scatterPlot, 
-                               fill = input$colourSelect,
-                               type = input$marginSelect, margins = 'both',
-                               size = 3)#size refers to size of main plot (compared to marginals)
-      
-    } else if (input$marginSelect == 'density'){#add density plot
-      
-      scatterPlot = ggMarginal(scatterPlot, 
-                               colour = input$colourSelect, margins = 'both',
-                               xparams = list(size=input$lineSelect),#line thickness
-                               yparams = list(size=input$lineSelect),
-                               size = 3)#size refers to size of main plot (compared to marginals)
-    }
-    
-    #print the actual plot
-    scatterPlot
+      #print the actual plot
+      scatterPlot
     }
     )
     
@@ -472,17 +477,17 @@ server <- function(input, output) {
     
     #only execute the following code if submit button pressed
     isolate({ 
-    
-    if (input$marginSelect != 'none'){#if plot not interactive
-      HTML(sprintf('The plot is not interactive (marginal plots selected). Zooming and article selection disabled.'))
-    } else {
-      HTML(paste(
-        sprintf('The plot is interactive in two ways.'),
-        sprintf('1) Zooming. Hold and drag to create a rectangle. Double click the rectangle to zoom in. Double click without rectangle to remove zoom. '),
-        sprintf('2) Link to article. Every data point you see is a link to the corresponding article. Single click article to choose it. It will appear in the left hand panel.'),
-        sep = '<br/>'
-      ))
-    }
+      
+      if (input$marginSelect != 'none'){#if plot not interactive
+        HTML(sprintf('The plot is not interactive (marginal plots selected). Zooming and article selection disabled.'))
+      } else {
+        HTML(paste(
+          sprintf('The plot is interactive in two ways.'),
+          sprintf('1) Zooming. Hold and drag to create a rectangle. Double click the rectangle to zoom in. Double click without rectangle to remove zoom. '),
+          sprintf('2) Link to article. Every data point you see is a link to the corresponding article. Single click article to choose it. It will appear in the left hand panel.'),
+          sep = '<br/>'
+        ))
+      }
     })
   })
   
@@ -494,9 +499,9 @@ server <- function(input, output) {
     
     #only execute the following code if submit button pressed
     isolate( 
-    
-    sprintf('Articles: %d (%1.1f per cent of total in data base of %d articles)',
-            length(dat_corr()$x), round(length(dat_corr()$x) / length(PLOS_data$id) * 100), length(PLOS_data$id))
+      
+      sprintf('Articles: %d (%1.1f per cent of total in data base of %d articles)',
+              length(dat_corr()$x), round(length(dat_corr()$x) / length(PLOS_data$id) * 100), length(PLOS_data$id))
     )
   })
   
