@@ -127,7 +127,7 @@ ui <- fluidPage(
                                  "PLoS Medicine" = "PLOS Medicine",
                                  "PLoS Neglected Tropical Diseases" = 'PLoS Neglected Tropical Diseases',
                                  "PLoS Pathogens" = "PLOS Pathogens",
-                                 "all PLoS jounals except PLoS ONE" = "not PLoS ONE"),
+                                 "all PLoS journals except PLoS ONE" = "not PLoS ONE"),
                                selected = "PLOS Biology"),
                    
                    selectInput(inputId = 'subjectSelect', label = 'Subject:',#for choosing subject from which to select articles
