@@ -248,7 +248,7 @@ revPlot = ggplot(dat_rev, aes(x = year, y = review_time_mean, color = journal, g
   theme(legend.position = 'right') +
   scale_x_continuous(breaks = seq(2006, 2016, 2)) +#leave one year blank on x-axis after every year labeled
   labs(y = 'Days from submission to publication', x = 'Year',
-       title = 'PLoS ONE used to be faster than other PLoS journals')+
+       title = 'PLoS ONE used to be the fastest PLoS journal')+
   ylim(c(15, 320)) +#ensure y-axis starts just exactly at 0
   annotate('text', x=2016.5, y=20, label="Data provided by PLOS \nMean +/- IQR",
            size = 5, hjust = 1)
