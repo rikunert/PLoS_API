@@ -252,20 +252,6 @@ revPlot = ggplot(dat_rev, aes(x = year, y = review_time_mean, color = journal, g
   ylim(c(15, 320)) +#ensure y-axis starts just exactly at 0
   annotate('text', x=2016.5, y=20, label="Data provided by PLOS \nMean +/- IQR",
            size = 5, hjust = 1)
-  #geom_text(data = data.frame(), x=2016.5, y=35, label="Data provided by PLOS \nMean +/- IQR", hjust = 1, vjust = 1,
-  #          size = 5, colour = 'black')
-revPlot
 
-
-#Add data information
-XPos = YPos = -Inf
-text_plotting = data.frame(x = XPos,
-                           y = YPos,
-                           t = "Data provided my PLOS \nMean +/- IQR)",
-                           hjust = 1, vjust = 1)
-
-revPlot = revPlot + 
-  geom_text(data = text_plotting,
-            aes(x=x,y=y,hjust=hjust, vjust = vjust, label=t),
-            size = 5)
+#print plot
 revPlot
