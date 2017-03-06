@@ -38,19 +38,28 @@ theme_set(theme_bw(18)+#remove gray background, set font-size
 
 years = seq(2006, 2016, 1)
 
-articles = data.frame(year = rep(NaN,length(years)), review_time = rep(NaN,length(years)), article_count = rep(NaN,length(years)))
+articles = data.frame(year = rep(NaN,length(years)), review_time = rep(NaN,length(years)),
+                      article_count = rep(NaN,length(years)),
+                      reference_count = rep(NaN,length(years)),
+                      author_count = rep(NaN, length(years)),
+                      page_count = rep(NaN, length(years)))
 
 for(i in seq(1,length(years),1)){ 
   
-  selection = toupper(PLOS_data[,'journal']) == toupper('PLOS ONE') &
+  selection = toupper(PLOS_data[,'journal']) != toupper('PLOS ONE') &
     PLOS_data[,"publication_date"] >= sprintf('%d-01-01',years[i]) &
     PLOS_data[,"publication_date"] < sprintf('%d-01-01',years[i] + 1)
   
   articles$year[i] = years[i]#publication year
   articles$review_time[i]= mean(PLOS_data[selection & !is.na(PLOS_data[,'review_time']), 'review_time'])#average review time
   articles$article_count[i] = sum(selection)#number of articles published
+  articles$reference_count[i]= mean(PLOS_data[selection & !is.na(PLOS_data[,'reference_count']), 'reference_count'])#average reference count
+  articles$author_count[i]= mean(PLOS_data[selection & !is.na(PLOS_data[,'author_count']), 'author_count'])#average author count
+  articles$page_count[i]= mean(PLOS_data[selection & !is.na(PLOS_data[,'page_count']), 'page_count'])#average page count
   
 }
+
+articles
 
 articles$year = as.factor(articles$year)#x axis as made up of discrete variable
 

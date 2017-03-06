@@ -40,7 +40,7 @@ step_size = 500 #articles processed in chunks for memory reasons, how big a chun
 #Predict when code will have run (very rough estimate)
 print(sprintf('%d articles to process (%1.2f per cent of total), ending approximately at %s.', sample_size,
               round((sample_size/article_count) * 100, digits = 2),
-              as.character(Sys.time() + 0.33 * sample_size)))#I assume a per article processing time of 1.15 sec 
+              as.character(Sys.time() + 0.33 * sample_size)))#I assume a per article processing time of 0.33 sec 
 
 #initialise variable for speed
 PLOS_data = data.frame(
@@ -65,7 +65,7 @@ options(scipen=999)
 
 tic_global = proc.time()[3]#start a timer (for debugging and efficiency purposes)
 
-for (i in seq(0,sample_size - step_size, by = step_size)) {#for each article which we gather (PLOS API counter appears to start at zero), these are all starting idx
+for (i in seq(0, sample_size - step_size, by = step_size)) {#for each article which we gather (PLOS API counter appears to start at zero), these are all starting idx
   
   tic = proc.time()[3]#start a timer (for debugging and efficiency purposes)
   
@@ -74,10 +74,10 @@ for (i in seq(0,sample_size - step_size, by = step_size)) {#for each article whi
   PLOS_data_i$info = searchplos(q = "*:*",#search for potentially all articles
                                 fl='id, publication_date, received_date,
                   author, journal,pagecount, reference,
-                  subject_level_1, title',#return doi
+                  subject_level_1, title',#return doi and other fields (all possible fields: http://api.plos.org/solr/search-fields/)
                                 'doc_type:full',#only look for full articles
                                 start = i,
-                                limit = min(c(step_size, article_count - i)))#how many articles to look for (50 is max for looking at the same time)
+                                limit = min(c(step_size, article_count - i)))#how many articles to look for
   
   PLOS_data_i$alm = alm_ids(doi = PLOS_data_i$info$data$id, info = 'totals')
   
@@ -96,6 +96,8 @@ for (i in seq(0,sample_size - step_size, by = step_size)) {#for each article whi
   max_idx = min(c(i + step_size, i + length(PLOS_data_i$info$data$id), sample_size))
   
   if (i < max_idx){
+    
+    #in the following i + 1 necessary because R begins counting at 1 and PLoS API begins counting at 0
     
     PLOS_data$review_time[(i + 1) : max_idx] <- as.integer(difftime(as.Date(PLOS_data_i$info$data$publication_date),
                                                                     as.Date(PLOS_data_i$info$data$received_date),
@@ -123,7 +125,7 @@ for (i in seq(0,sample_size - step_size, by = step_size)) {#for each article whi
                                                             function(x) x[x['.id'] == 'mendeley','total'] +#saves on mendeley
                                                               x[x['.id'] == 'citeulike', 'total']))#saves on citeulike
     
-    PLOS_data$id[(i + 1) : max_idx] <- PLOS_data_i$info$data$id
+    PLOS_data$id[(i + 1) : max_idx] <- PLOS_data_i$info$data$id#doi
     
     PLOS_data$subject[(i + 1) : max_idx] <- PLOS_data_i$info$data$subject_level_1
     
@@ -131,6 +133,7 @@ for (i in seq(0,sample_size - step_size, by = step_size)) {#for each article whi
     
     PLOS_data$publication_date[(i + 1) : max_idx] <- as.Date(PLOS_data_i$info$data$publication_date)
   }
+  
   toc = proc.time()[3] - tic#check time spent since tic statement 
   print(sprintf('Actual duration of loop %d out of %d : %1.1f sec, or %1.2f sec per article',
                 round(((i+1)/step_size) + 1), ceiling(sample_size / step_size),

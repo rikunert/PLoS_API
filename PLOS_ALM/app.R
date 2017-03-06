@@ -86,7 +86,7 @@ ui <- fluidPage(
                                  "Facebook engagements" = "facebook",
                                  "Number of authors" = "author_count",
                                  "Number of pages" = "page_count",
-                                 "Number of References" = "reference_count",
+                                 "Number of references" = "reference_count",
                                  "Number of subject categories" = "subject_count",
                                  "Days between submission and publication" = "review_time",
                                  "Publication date" = "publication_date"
@@ -101,7 +101,7 @@ ui <- fluidPage(
                                  "Facebook engagements" = "facebook",
                                  "Number of authors" = "author_count",
                                  "Number of pages" = "page_count",
-                                 "Number of References" = "reference_count",
+                                 "Number of references" = "reference_count",
                                  "Number of subject categories" = "subject_count",
                                  "Days between submission and publication" = "review_time",
                                  "Publication date" = "publication_date"
