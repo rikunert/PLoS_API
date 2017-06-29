@@ -9,9 +9,9 @@ I used R-shiny to create an interactive web-app which allows any user to effortl
 
 # Blog post publications
 Based on the data and the interactive web-app I found interesting patterns in the data. These findings were published in three blog posts:
-[Do twitter or facebook activity influence scientific impact?](https://brainsidea.wordpress.com/2017/02/22/do-twitter-or-facebook-activity-influence-scientific-impact/)
-[The slowing down of the biggest scientific journal](https://brainsidea.wordpress.com/2017/03/01/the-slowing-down-of-the-biggest-scientific-journal/)
-[The growing divide between higher and low impact scientific journals](https://brainsidea.wordpress.com/2017/03/06/the-growing-divide-between-higher-and-low-impact-scientific-journals/)
+- [Do twitter or facebook activity influence scientific impact?](https://brainsidea.wordpress.com/2017/02/22/do-twitter-or-facebook-activity-influence-scientific-impact/)
+- [The slowing down of the biggest scientific journal](https://brainsidea.wordpress.com/2017/03/01/the-slowing-down-of-the-biggest-scientific-journal/)
+- [The growing divide between higher and low impact scientific journals](https://brainsidea.wordpress.com/2017/03/06/the-growing-divide-between-higher-and-low-impact-scientific-journals/)
 
 Additional figures, which are not part of the interactive we-app, were produced with the script additional_blog_analyses.R
 
